@@ -8,6 +8,13 @@ let userCount = 0;
 let allSockets:User[] = [];
 
 wss.on("connection", function (socket) {
+    const serverMsg = {
+        type:"status",
+        payload:{
+            status:"online"
+        }
+    }
+    socket.send(JSON.stringify(serverMsg))
     
     socket.on("message",(msg) => {
         const parsedMsg = JSON.parse(msg.toString());
@@ -18,6 +25,7 @@ wss.on("connection", function (socket) {
             })
         }
         if (parsedMsg.type === "chat") {
+            console.log("Received ",parsedMsg);
             let currentUserRoom:unknown = null;
             allSockets.forEach(user => {
                 if (user.socket == socket) {
@@ -27,7 +35,14 @@ wss.on("connection", function (socket) {
 
             allSockets.forEach(user => {
                 if (user.room == currentUserRoom) {
-                    user.socket.send(parsedMsg.payload.message)
+                    const serverMsg = {
+                        type:"message",
+                        payload:{
+                            message: parsedMsg.payload.message,
+                            username:parsedMsg.payload.username
+                        }
+                    }
+                    user.socket.send(JSON.stringify(serverMsg))
                 }
             });
         }

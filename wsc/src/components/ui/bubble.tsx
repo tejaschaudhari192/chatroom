@@ -27,7 +27,7 @@ export interface BubbleProps
 const Bubble = React.forwardRef<HTMLDivElement, BubbleProps>(
   ({ className, intent, ...props }, ref) => (
     <div
-      className={cn(bubbleVariants({ intent }), className)}
+      className={cn(bubbleVariants({intent }), className)}
       ref={ref}
       {...props}
     />
