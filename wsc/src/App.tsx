@@ -4,7 +4,7 @@ import { Home } from "./pages/home";
 import { useEffect, useState } from "react";
 
 function App() {
-        const [username, setUsername] = useState(localStorage.getItem("username"))
+        const [username, setUsername] = useState<string|null>(localStorage.getItem("username"))
         useEffect(() => {
             if (username) {
                 localStorage.setItem("username",username)

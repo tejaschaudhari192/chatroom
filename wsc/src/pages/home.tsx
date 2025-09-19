@@ -1,5 +1,3 @@
-import { AppWindowIcon, CodeIcon } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -21,11 +19,19 @@ import { useNavigate } from "react-router-dom"
 import { useEffect, useRef, useState } from "react"
 import Modal from "@/components/modal"
 
-export function Home({ username, setUsername }) {
+interface HomeProps {
+    username: string | null;
+    setUsername: (username: string) => void;
+}
+
+
+export function Home({ username, setUsername }: HomeProps) {
     const navigate = useNavigate();
-    const inputRef = useRef<HTMLInputElement>("")
+    const inputRef = useRef<HTMLInputElement>(null)
     const handleChat = () => {
-        navigate("/chat/" + inputRef.current.value)
+        if (inputRef.current && inputRef.current.value) {
+            navigate("/chat/" + inputRef.current.value)
+        }
     }
     const [modal, setModal] = useState<boolean>(false);
 
@@ -49,14 +55,13 @@ export function Home({ username, setUsername }) {
                             <CardHeader>
                                 <CardTitle>Create</CardTitle>
                                 <CardDescription>
-                                    Make changes to your account here. Click save when you&apos;re
-                                    done.
+                                    Create a new chat room and get an ID.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="grid gap-6">
                                 <div className="grid gap-3">
-                                    <Label htmlFor="tabs-demo-name">Id</Label>
-                                    <Input id="tabs-demo-name" ref={inputRef} />
+                                    <Label htmlFor="tabs-demo-name">Your Name</Label>
+                                    <Input id="tabs-demo-name" ref={inputRef} placeholder="Enter a room name/id" />
                                 </div>
                             </CardContent>
                             <CardFooter>
@@ -69,8 +74,7 @@ export function Home({ username, setUsername }) {
                             <CardHeader>
                                 <CardTitle>Join</CardTitle>
                                 <CardDescription>
-                                    Change your password here. After saving, you&apos;ll be logged
-                                    out.
+                                    Enter an existing Room ID to join the chat.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="grid gap-6">
