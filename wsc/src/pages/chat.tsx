@@ -12,7 +12,7 @@ interface Message {
     message: string;
 }
 function ChatRoom() {
-    const inputRef = useRef<HTMLInputElement>(null);
+    const [message, setMessage] = useState<string | null>();
     const wsRef = useRef<WebSocket>(null);
     const [messages, setMessages] = useState<Message[]>(() => {
         const storedHistory = localStorage.getItem("history");
@@ -22,16 +22,16 @@ function ChatRoom() {
     const username = localStorage.getItem("username");
 
     function sendMessage() {
-        const msg = inputRef.current?.value;
-        if (wsRef && msg) {
+        if (wsRef && message) {
             const chatMessage = {
                 type: "chat",
                 payload: {
-                    message: msg,
+                    message: message,
                     username
                 }
             }
             wsRef.current?.send(JSON.stringify(chatMessage));
+            setMessage(null);
         }
     }
 
@@ -93,10 +93,16 @@ function ChatRoom() {
                 })}
             </div>
             <div className="flex gap-2">
-                <Input ref={inputRef} placeholder="Type message" />
+                <Input 
+                onChange={(e) => {
+                    setMessage(e.target.value)
+                }} 
+                value={message||""}
+                placeholder="Type message" 
+                />
                 <Button
                     onClick={sendMessage}
-                // disabled={!inputRef.current?.value.length}
+                    disabled={!message}
                 >
                     <SendHorizonal />
                 </Button>
