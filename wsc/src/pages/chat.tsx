@@ -5,7 +5,7 @@ import { SendHorizonal } from "lucide-react";
 import { Bubble } from "@/components/ui/bubble";
 import type { sendType } from "@/types";
 import configurations from "@/config/configurations";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface Message {
     username: string;
@@ -14,12 +14,14 @@ interface Message {
 function ChatRoom() {
     const [message, setMessage] = useState<string | null>();
     const wsRef = useRef<WebSocket>(null);
+    const navigate = useNavigate()
     const [messages, setMessages] = useState<Message[]>(() => {
         const storedHistory = localStorage.getItem("history");
         return storedHistory ? JSON.parse(storedHistory) : [];
     });
     const { id } = useParams()
     const username = localStorage.getItem("username");
+    localStorage.setItem("redirect", window.location.pathname)
 
     function sendMessage() {
         if (wsRef && message) {
@@ -33,7 +35,7 @@ function ChatRoom() {
             wsRef.current?.send(JSON.stringify(chatMessage));
             setMessage(null);
         }
-    }
+    }    
 
     useEffect(() => {
         const ws = new WebSocket(configurations.base_url);
@@ -49,9 +51,9 @@ function ChatRoom() {
                 }
                 setMessages((msg) => [...msg, message]);
             }
-            if (parsedData.type == "status") {
-                alert("Status: " + parsedData.payload.status)
-            }
+            // if (parsedData.type == "status") {
+            //     alert("Status: " + parsedData.payload.status)
+            // }
         }
 
         wsRef.current.onopen = () => {
@@ -63,9 +65,9 @@ function ChatRoom() {
             }
             ws.send(JSON.stringify(joinMessage))
         }
-        wsRef.current.onerror = () => {
-            alert("offline")
-        }
+        // wsRef.current.onerror = () => {
+        //     alert("offline")
+        // }
         return () => {
             ws.close();
         }
@@ -74,6 +76,13 @@ function ChatRoom() {
     useEffect(() => {
         localStorage.setItem("history", JSON.stringify(messages))
     }, [messages])
+
+    useEffect(() => {
+        if (!username) {
+            navigate("/");
+        } else localStorage.removeItem("redirect")
+    }, [username, navigate]);
+
 
     return (
         <div className='h-screen justify-between p-6 dark:bg-slate-800'>
@@ -85,20 +94,19 @@ function ChatRoom() {
                             key={index}
                             className={`flex ${isClientMessage ? "justify-start" : "justify-end"}`}
                         >
-                            <Bubble intent={isClientMessage ? "outgoing" : "incoming"}>
-                                {msg.message}
-                            </Bubble>
+                            <Bubble message={msg.message} username={msg.username} intent={isClientMessage ? "outgoing" : "incoming"} />
                         </div>
                     )
                 })}
             </div>
             <div className="flex gap-2">
-                <Input 
-                onChange={(e) => {
-                    setMessage(e.target.value)
-                }} 
-                value={message||""}
-                placeholder="Type message" 
+                <Input
+                    onChange={(e) => {
+                        setMessage(e.target.value)
+                    }}
+                    value={message || ""}
+                    placeholder="Type message"
+                    
                 />
                 <Button
                     onClick={sendMessage}

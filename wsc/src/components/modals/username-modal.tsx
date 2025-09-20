@@ -5,17 +5,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useRef } from "react";
 
 // 1. Define an interface for the component's props for type safety.
-interface ModalProps {
+interface UsernameModalProps {
     isOpen: boolean;
     setUsername: (username: string) => void;
 }
 
-const Modal = ({ isOpen, setUsername }: ModalProps) => {
+const UsernameModal = ({ isOpen, setUsername }: UsernameModalProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleSetUsername = () => {
@@ -45,4 +45,4 @@ const Modal = ({ isOpen, setUsername }: ModalProps) => {
     )
 }
 
-export default Modal;
+export default UsernameModal;

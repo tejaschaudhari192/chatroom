@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ChatRoom from "@/pages/chat";
-import { Home } from "./pages/home";
+import { Home } from "@/pages/home";
 import { useEffect, useState } from "react";
 
 function App() {
