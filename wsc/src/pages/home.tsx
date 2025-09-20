@@ -43,7 +43,7 @@ export function Home({ username, setUsername }: HomeProps) {
         setGeneratedLink(uniqueIdGenerator());
     };
 
-    const { handleChat, handleJoinChat } = useChatNavigation();
+    const { handleJoinChat } = useChatNavigation();
 
     
 
