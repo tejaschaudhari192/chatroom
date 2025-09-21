@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/types/index.d.ts"],"version":"5.9.2"}
+{"root":["./src/index.ts","./src/socketmanager.ts","./src/handlers/chathandler.ts","./src/handlers/joinhandler.ts","./src/types/index.ts","./src/types/message.ts"],"version":"5.9.2"}
