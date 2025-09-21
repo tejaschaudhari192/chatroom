@@ -8,12 +8,12 @@ const cn = (...inputs: (string | undefined | null | boolean)[]) => {
 
 // Define bubble style variants
 const bubbleVariants = cva(
-  "w-fit max-w-[80%] rounded-2xl px-4 py-3 shadow-md break-words",
+  "w-fit max-w-[80%] rounded-md p-3 pt-1  shadow-md break-words",
   {
     variants: {
       intent: {
-        incoming: "bg-gray-100 text-gray-900 dark:bg-gray-950 dark:text-gray-50",
-        outgoing: "bg-blue-600 text-white dark:bg-blue-500",
+        incoming: "bg-gray-100 text-gray-900 dark:bg-gray-950 dark:text-gray-50 rounded-tr-none",
+        outgoing: "bg-blue-600 text-white dark:bg-blue-500 rounded-tl-none",
       },
     },
     defaultVariants: {

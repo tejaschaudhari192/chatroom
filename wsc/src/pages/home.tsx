@@ -1,19 +1,19 @@
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
@@ -25,129 +25,128 @@ import { LinkShareDialog } from "@/components/modals/share-dialog";
 import { useChatNavigation } from "@/hooks/useChatNavigation";
 
 interface HomeProps {
-    username: string | null;
-    setUsername: (username: string) => void;
+  username: string | null;
+  setUsername: (username: string) => void;
 }
 
 export function Home({ username, setUsername }: HomeProps) {
-    const navigate = useNavigate();
-    const wsRef = useRef<WebSocket | null>(null);
-    // const inputRef = useRef<HTMLInputElement | null>(null);
-    const redirectUrl = localStorage.getItem("redirect");
-    const [connectionAttempted, setConnectionAttempted] = useState<boolean>(false);
-    const [generatedLink, setGeneratedLink] = useState<string | null>(null);
-    const [modal, setModal] = useState<boolean>(false);
-    const inputRef = useRef<HTMLInputElement | null>(null);
+  const navigate = useNavigate();
+  const wsRef = useRef<WebSocket | null>(null);
+  const redirectUrl = localStorage.getItem("redirect");
 
-    const handleGenerateLink = () => {
-        setGeneratedLink(uniqueIdGenerator());
+  const [connectionAttempted, setConnectionAttempted] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const { handleJoinChat } = useChatNavigation();
+
+  useEffect(() => {
+    setShowUsernameModal(!username);
+  }, [username]);
+
+  useEffect(() => {
+    const ws = new WebSocket(configurations.base_url);
+    wsRef.current = ws;
+
+    ws.onopen = () => setConnectionAttempted(true);
+
+    ws.onmessage = (ev: MessageEvent) => {
+      const data = JSON.parse(ev.data);
+      if (data.type === "status") {
+        toast.success("Server Connected");
+      }
     };
 
-    const { handleJoinChat } = useChatNavigation();
+    ws.onerror = ws.onclose = () => {
+      if (!connectionAttempted) {
+        toast.error("Server Failure");
+      }
+    };
 
-    
+    return () => ws.close();
+  }, [connectionAttempted]);
 
-    useEffect(() => {
-        if (!username) setModal(true);
-        else setModal(false);
-    }, [username]);
+  useEffect(() => {
+    if (username && redirectUrl) {
+      navigate(redirectUrl);
+    }
+  }, [username, redirectUrl]);
 
-    useEffect(() => {
-        const ws = new WebSocket(configurations.base_url);
-        wsRef.current = ws;
+  const handleGenerateLink = () => {
+    const link = uniqueIdGenerator();
+    setGeneratedLink(link);
+    navigator.clipboard.writeText(link).then(() => {
+      toast.success("Room link copied to clipboard");
+    });
+  };
 
-        const handleOpen = () => {
-            // toast.success("Server Connected");
-            setConnectionAttempted(true);
-        };
+  const handleJoin = () => {
+    const value = inputRef.current?.value.trim();
+    if (!value) {
+      toast.warning("Please enter a Room ID or link");
+      return;
+    }
+    handleJoinChat(value);
+  };
 
-        const handleMessage = (ev: MessageEvent) => {
-            const parsedData = JSON.parse(ev.data);
-            if (parsedData.type === "status") {
-                toast.success("Server Connected")
-            }
-        };
+  return (
+    <div className="min-h-screen w-screen flex items-center justify-center bg-background text-foreground transition-colors">
+      <Tabs defaultValue="create" className="w-full max-w-md">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="create">Create</TabsTrigger>
+          <TabsTrigger value="join">Join</TabsTrigger>
+        </TabsList>
 
-        const handleError = () => {
-            if (!connectionAttempted) {
-                // Only show failure message if connection attempt has not been successful
-                toast.error("Server Failure");
-            }
-        };
+        <TabsContent value="create">
+          <Card>
+            <CardHeader>
+              <CardTitle>Create a Room</CardTitle>
+              <CardDescription>
+                Instantly generate a unique chat room link.
+              </CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Button className="w-full" onClick={handleGenerateLink}>
+                Generate Link
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
 
-        const handleClose = () => {
-            if (!connectionAttempted) {
-                toast.error("Server Failure");
-            }
-        };
+        <TabsContent value="join">
+          <Card>
+            <CardHeader>
+              <CardTitle>Join a Room</CardTitle>
+              <CardDescription>
+                Enter the Room ID or shared link to join.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <Label htmlFor="join-input">Room ID or Link</Label>
+              <Input
+                id="join-input"
+                ref={inputRef}
+                placeholder="e.g., abcd1234"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleJoin();
+                }}
+              />
+            </CardContent>
+            <CardFooter>
+              <Button className="w-full" onClick={handleJoin}>
+                Join Room
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-        if (wsRef.current) {
-            wsRef.current.onopen = handleOpen;
-            wsRef.current.onmessage = handleMessage;
-            wsRef.current.onerror = handleError;
-            wsRef.current.onclose = handleClose;
-        }
-
-        return () => {
-            // Cleanup WebSocket connection
-            if (wsRef.current) {
-                wsRef.current.close();
-            }
-        };
-    }, [connectionAttempted]);
-
-    useEffect(() => {
-        if (username && redirectUrl) {
-            navigate(redirectUrl);
-        }
-    }, [username, redirectUrl]);
-
-    return (
-        <div className="h-screen flex justify-center items-center w-screen bg-amber-200">
-            <div>
-                <Tabs defaultValue="create">
-                    <TabsList>
-                        <TabsTrigger value="create">Create</TabsTrigger>
-                        <TabsTrigger value="join">Join</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="create">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Create</CardTitle>
-                                <CardDescription>
-                                    Create a new chat room and get an ID.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardFooter>
-                                <Button onClick={handleGenerateLink}>Create Room</Button>
-                            </CardFooter>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="join">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Join</CardTitle>
-                                <CardDescription>
-                                    Enter an existing Room ID or link to join the chat.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="grid gap-6">
-                                <div className="grid gap-3">
-                                    <Label htmlFor="tabs-demo-new">Enter Id || Link</Label>
-                                    <Input ref={inputRef} id="tabs-demo-new" type="text" />
-                                </div>
-                            </CardContent>
-                            <CardFooter>
-                                <Button onClick={() => {
-                                    handleJoinChat(inputRef.current?.value!)
-                                }}>Join</Button>
-                            </CardFooter>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
-            </div>
-            <UsernameModal isOpen={modal} setUsername={setUsername} />
-            <LinkShareDialog generatedLink={generatedLink} isOpen = {generatedLink?true:false}/>
-        </div>
-    );
+      <UsernameModal isOpen={showUsernameModal} setUsername={setUsername} />
+      <LinkShareDialog
+        generatedLink={generatedLink}
+        isOpen={!!generatedLink}
+      />
+    </div>
+  );
 }
